@@ -57,7 +57,7 @@ with open('Results/'+ new_dir_name + '/AdData.txt', 'w', encoding='utf-8') as f:
 
 for url in ads_aclick_urls:
     filepath = 'Results/'+ new_dir_name
-    browser = webdriver.Ie(executable_path= 'WebDrivers\IE\IEDriverServer.exe')
+    browser = webdriver.Ie(executable_path= 'WebDrivers\Chrome\chromedriver.exe')
     browser.get(url)
     time.sleep(20)
 

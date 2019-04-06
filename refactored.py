@@ -9,7 +9,6 @@ ads_display_urls = []
 ads_aclick_urls = []
 
 
-
 def create_directory():
     directory_name = datetime.datetime.now().strftime("%Y_%m_%d-%H%M")
     os.mkdir("Results/" + directory_name)
@@ -35,26 +34,12 @@ def select_browser():
     else: select_browser()
 
 
-
 def select_search_list():
     print("Provide full path to txt file containing search terms\nSearch terms must be delimited by a new line")
     file_path = input("Path: ")
           
     terms_list = open(file_path).read().splitlines()
     return terms_list
-
-
-
-def execute_search_query(browser, search_term, directory):
-    bing_url = "https://www.bing.com"
-    browser.get(bing_url)
-    search_box = browser.find_element_by_id("sb_form_q")
-    search_box.send_keys(search_term)
-    time.sleep(3)
-    search_box.submit()
-    time.sleep(6)
-    select_ad_elements(browser)
-    save_ad_info(directory)
 
 
 def select_ad_elements(browser):
@@ -74,21 +59,51 @@ def save_ad_info(directory):
                f.write("Ad Text: {0}\tDisplay URL:{1}\naclick URL:{2}\n\n".format(x,y,z))
         f.close()
 
+def save_screenshot(browser, directory, filename):
+    browser.get_screenshot_as_file(os.path.join(directory, filename +".png"))
+
+
+def save_html(browser, directory, filename, ad_url):
+    html_path = os.path.join(directory, filename + ".html")
+    page_source = browser.page_source + "\n\nAd URL: " + ad_url
+    with open(html_path, 'w', encoding='utf-8') as file_object:
+        file_object.write(page_source)
+            
+
+def crawl_ads(browser, directory):
+    for ad_url in ads_aclick_urls:
+        browser.get(ad_url)
+        time.sleep(10)
+        landing_url = urlparse(browser.current_url)
+        filename = landing_url.netloc
+        save_screenshot(browser, directory, filename)
+        save_html(browser, directory, filename, ad_url)
+
+
+def execute_search_query(browser, search_term, directory):
+    bing_url = "https://www.bing.com"
+    browser.get(bing_url)
+    search_box = browser.find_element_by_id("sb_form_q")
+    search_box.send_keys(search_term)
+    time.sleep(3)
+    search_box.submit()
+    time.sleep(6)
+    select_ad_elements(browser)
+    save_ad_info(directory)    
+
 
 def start_search(browser, search_list, directory):
      for search_term in search_list:
         execute_search_query(browser,search_term, directory)
-        
     
-
-
-
 
 def start_crawl():
     directory = create_directory()
     browser = select_browser()
     search_list = select_search_list()
-    start_search(browser, search_list, directory) 
+    start_search(browser, search_list, directory)
+    crawl_ads(browser, directory)
+    browser.close()
 
     
 
